@@ -1,0 +1,111 @@
+/*
+	Bootstrap overrides
+*/
+body a, body a:hover, body a:focus {
+  text-decoration: none;
+}
+
+.content-header h1 {
+	border: none !important;
+}
+
+.anthracite {
+	color: #5b7583;
+}
+
+.light-blue {
+	color: #23afd0;
+}
+
+.light-green {
+	color: #15c55c;
+}
+
+.red {
+	color: #d82f33;
+}
+
+.teal {
+	color: #8dd4cd;
+}
+
+/* Fix for bootstrap */
+table thead tr th {
+	border: 0px !important;
+}
+
+.mobile {
+	display: none;
+}
+
+@media (max-width: 1000px) {	
+	.txrx, .dials {
+		display: none !important;
+	}
+	.mobile {
+		display: block;
+	}
+}
+
+.txrx {
+	color: #FFF;
+	padding: 15px;
+	float: left;
+}
+
+.branch i, .treeview i, .box-header i {
+	font-size: 20px !important;
+	margin-right: 20px !important;
+}
+.treeview-menu i {
+	font-size: 10px !important;
+}
+
+.borderless td, .borderless th {
+    border: none !important;
+}
+
+.dashboard-dial, .dashboard-dial input, .dial-label {
+	text-align: center;
+	color: #5b7583 !important;
+	margin-bottom: 25px;
+}
+
+.dashboard-dial input {
+	margin-top: 36px !important;	
+	font: bold 20px Arial;
+}
+
+.dashboard-dial .dial-label {
+    margin-bottom: 40px;
+    margin-top: -65px;
+}
+.dashboard-dial .dial-label label {
+    display: block;
+}
+
+.float-right {
+	float: right;
+	padding-right: 20px;
+}
+
+.progress-cpu, .progress-memory, .progress-disk {
+	font-weight: bold;
+}
+
+.unbutton {
+  background: none;
+  padding: 0px;
+  border: none;
+  margin-right: 5px;
+}
+
+span.download-icon:after {
+  font-family: "Font Awesome 5 Solid";
+  content: "\f073";
+  color: grey;
+  font-size: 25px;
+  display: inline-block;
+  margin: 1em;
+  /* demo only */
+}
