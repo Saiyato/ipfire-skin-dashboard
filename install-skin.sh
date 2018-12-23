@@ -11,6 +11,7 @@ if [[ ! -d $skindir/include/webfonts ]]; then mkdir -p $skindir/include/webfonts
 
 # Download the manifest
 
+wget "https://raw.githubusercontent.com/Saiyato/ipfire-skin-dashboard/master/MANIFEST"
 wget "https://github.com/timfprogs/ipfblocklist/raw/master/MANIFEST"
 
 # Download and move files to their destinations
@@ -28,7 +29,7 @@ echo $path
 if [[ ! -d $path ]]; then mkdir -p $path; fi
 if [[ $name != "." ]];
 then
-  wget "https://github.com/timfprogs/ipfblocklist/raw/master/$name" -O $path/$name
+  wget "https://raw.githubusercontent.com/Saiyato/ipfire-skin-dashboard/master/$name" -O $path/$name
   chown $owner $path/$name
   chmod $mode $path/$name;
 else
