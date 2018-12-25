@@ -11,7 +11,7 @@ include/js/bootstrap.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.knob.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.sparkline.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
-include/js/lc_switch.js /srv/web/ipfire/html/themes/dashboard root.root 0644
+include/js/lc_switch.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/overrideClasses.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/refreshInetInfo.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/refreshSysInfo.js /srv/web/ipfire/html/themes/dashboard root.root 0644
