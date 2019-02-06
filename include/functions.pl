@@ -145,7 +145,7 @@ sub openpage {
 	my $title = shift;
 	my $boh = shift;
 	my $extrahead = shift;
-	my $suppressMenu = shift;
+	my $suppress_menu = shift;
 	my @tmp = split(/\./, basename($0));
 	my $scriptName = @tmp[0];
 
@@ -257,8 +257,8 @@ if ($settings{'SPEED'} ne 'off') {
 EOF
 }
 
-my $activeClass = '';
-if(@URI[0] eq '/cgi-bin/dashboard.cgi') { $activeClass = ' active'; }
+my $active_class = '';
+if(@URI[0] eq '/cgi-bin/dashboard.cgi') { $active_class = ' active'; }
 print <<END
 				<!-- Notifications Menu -->
 				<li class="dropdown notifications-menu">
@@ -288,7 +288,7 @@ $notifications
     <section class="sidebar">
 		<ul class="sidebar-menu" data-widget="tree">
 			<li class="header">MAIN NAVIGATION</li>
-			<li class="branch$activeClass">
+			<li class="branch$active_class">
 				<a href="/cgi-bin/dashboard.cgi">
 					<i class="fas fa-fire fa-fw"></i> <span>Dashboard</span>
 				</a>
@@ -296,7 +296,7 @@ $notifications
 END
 ;
 
-&showmenu() if ($suppressMenu != 1);
+&showmenu() if ($suppress_menu != 1);
 
 print <<END			
 				</ul>

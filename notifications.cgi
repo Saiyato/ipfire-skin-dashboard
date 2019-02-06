@@ -36,7 +36,7 @@ my $url = '';
 my $icon = '';
 my $result = '';
 
-sub validateTimeStamp
+sub validate_timestamp
 {
 	my $date = shift;
 	if( $date =~ /^(19|2\d)\d\d([- \/.])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])T(0[0-9]|1[0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9])$/ ) { return $date; }
@@ -51,7 +51,7 @@ if ($ENV{'QUERY_STRING'})
 	
 	if ($operation eq 'view')
 	{
-		$timestamp = validateTimeStamp($temp[1]); # yyyyMMddTHH:mm:ss
+		$timestamp = validate_timestamp($temp[1]); # yyyyMMddTHH:mm:ss
 		$subject = CGI::unescape($temp[2]);
 		$msg = CGI::unescape($temp[3]);
 		$url = $temp[4];
@@ -59,7 +59,7 @@ if ($ENV{'QUERY_STRING'})
 	}
 	elsif ($operation eq 'insert')
 	{
-		$timestamp = validateTimeStamp($temp[1]); # yyyyMMddTHH:mm:ss
+		$timestamp = validate_timestamp($temp[1]); # yyyyMMddTHH:mm:ss
 		$subject = CGI::unescape($temp[2]);
 		$msg = CGI::unescape($temp[3]);
 		$url = $temp[4];
@@ -167,7 +167,7 @@ if ($ENV{'QUERY_STRING'})
 # Parse POST parameters
 if ($cgiparams{'ACTION'} eq 'notify')
 {
-	$timestamp = validateTimeStamp($cgiparams{'timestamp'});
+	$timestamp = validate_timestamp($cgiparams{'timestamp'});
 	$subject = $cgiparams{'subject'};
 	$msg = $cgiparams{'msg'};
 	$url = $cgiparams{'url'};
