@@ -172,7 +172,7 @@ print <<EOF
 						middle: \$("#middle-column").sortable('serialize'),
 						right: \$("#right-column").sortable('serialize')
 					};
-					var url = '/cgi-bin/notifications.cgi?sort,c1,' + data.left.toString().replace('&', '|') + ',c2,' + data.middle.toString().replace('&', '|') + ',c3,' + data.right.toString().replace('&', '|');
+					var url = '/cgi-bin/notifications.cgi?sort,c1,' + data.left.toString().replace(/&/g, '|') + ',c2,' + data.middle.toString().replace(/&/g, '|') + ',c3,' + data.right.toString().replace(/&/g, '|');
 					//alert('Sorted data: ' + url);
 					\$.get(url, function(data) {});
 				}

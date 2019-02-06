@@ -36,7 +36,7 @@ my $url = '';
 my $icon = '';
 my $result = '';
 
-sub validate_timestamp
+sub validateTimeStamp
 {
 	my $date = shift;
 	if( $date =~ /^(19|2\d)\d\d([- \/.])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])T(0[0-9]|1[0-9]|2[0-4]):([0-5][0-9]):([0-5][0-9])$/ ) { return $date; }
@@ -51,7 +51,7 @@ if ($ENV{'QUERY_STRING'})
 	
 	if ($operation eq 'view')
 	{
-		$timestamp = validate_timestamp($temp[1]); # yyyyMMddTHH:mm:ss
+		$timestamp = validateTimeStamp($temp[1]); # yyyyMMddTHH:mm:ss
 		$subject = CGI::unescape($temp[2]);
 		$msg = CGI::unescape($temp[3]);
 		$url = $temp[4];
@@ -59,7 +59,7 @@ if ($ENV{'QUERY_STRING'})
 	}
 	elsif ($operation eq 'insert')
 	{
-		$timestamp = validate_timestamp($temp[1]); # yyyyMMddTHH:mm:ss
+		$timestamp = validateTimeStamp($temp[1]); # yyyyMMddTHH:mm:ss
 		$subject = CGI::unescape($temp[2]);
 		$msg = CGI::unescape($temp[3]);
 		$url = $temp[4];
@@ -76,7 +76,7 @@ if ($ENV{'QUERY_STRING'})
 	{		
 		my $db_error = '';
 		my $driver   = "SQLite";
-		my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/notifications.db";
+		my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/dashboard.db";
 		my $dsn = "DBI:$driver:dbname=$database";
 		my $userid = "";
 		my $password = "";
@@ -85,13 +85,14 @@ if ($ENV{'QUERY_STRING'})
 		
 		my $stmt = ();
 		my $rv = ();
+		my $increment = 0;		
+		my $tmp = '';
 		
 		# Left column
 		my @wids = split('\|', $temp[2]);
 		foreach my $wid (@wids) {
 			if($wid ne '')
 			{
-				my $increment = 0;
 				my $f_wid = $wid;
 				$f_wid =~ s/wid\[\]=//g;
 				
@@ -101,22 +102,17 @@ if ($ENV{'QUERY_STRING'})
 				if($rv < 0) {
 					$db_error = $DBI::errstr;
 					$result = 'failed';
-				}
-			
-			
-				$url = $wid;
+				}				
 				++$increment;
-				$msg = $msg.'|'.$wid;
-				$icon = $result.$f_wid.':'.$increment.'|';
 			}
 		}
 		
 		# Middle column
+		$increment = 0;
 		my @wids = split('\|', $temp[4]);
 		foreach my $wid (@wids) {
 			if($wid ne '')
 			{
-				my $increment = 0;
 				my $f_wid = $wid;
 				$f_wid =~ s/wid\[\]=//g;
 				
@@ -132,11 +128,11 @@ if ($ENV{'QUERY_STRING'})
 		}
 		
 		# Right column
+		$increment = 0;
 		my @wids = split('\|', $temp[6]);
 		foreach my $wid (@wids) {
 			if($wid ne '')
 			{
-				my $increment = 0;
 				my $f_wid = $wid;
 				$f_wid =~ s/wid\[\]=//g;
 				
@@ -151,11 +147,8 @@ if ($ENV{'QUERY_STRING'})
 			}
 		}
 		
-		$new_status = $temp[2];		
-		$timestamp = $new_status;
-		
 		$dbh->disconnect;
-		$result = 'success';
+		if($rv == 0) { $result = 'success'; }
 	}
 	elsif ($operation eq 'test')
 	{
@@ -167,7 +160,7 @@ if ($ENV{'QUERY_STRING'})
 # Parse POST parameters
 if ($cgiparams{'ACTION'} eq 'notify')
 {
-	$timestamp = validate_timestamp($cgiparams{'timestamp'});
+	$timestamp = validateTimeStamp($cgiparams{'timestamp'});
 	$subject = $cgiparams{'subject'};
 	$msg = $cgiparams{'msg'};
 	$url = $cgiparams{'url'};
@@ -178,7 +171,7 @@ if($operation eq 'insert')
 {
 	my $db_error = '';
 	my $driver   = "SQLite";
-	my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/notifications.db";
+	my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/dashboard.db";
 	my $dsn = "DBI:$driver:dbname=$database";
 	my $userid = "";
 	my $password = "";
@@ -201,7 +194,7 @@ if($operation eq 'update')
 {
 	my $db_error = '';
 	my $driver   = "SQLite";
-	my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/notifications.db";
+	my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/dashboard.db";
 	my $dsn = "DBI:$driver:dbname=$database";
 	my $userid = "";
 	my $password = "";
