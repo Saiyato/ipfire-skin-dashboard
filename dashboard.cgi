@@ -19,120 +19,108 @@
 #                                                                             #
 ###############################################################################
 
-use strict;
+BEGIN { push ( @INC, "/srv/web/ipfire/html/themes/dashboard/include/widgets/" ); }
+
+#use strict;
 use Time::Local;
-use Data::Dumper;
+use CGI qw/:standard/;
+use CGI::Carp 'fatalsToBrowser';
+use warnings;
+use DBI;
 
-# enable only the following on debugging purpose
-#use warnings;
-#use CGI::Carp 'fatalsToBrowser';
+use Module::Load;
+my $dir = '/srv/web/ipfire/html/themes/dashboard/include/widgets/';
+opendir(DIR, $dir) or die $!;
+while (my $file = readdir(DIR)) {
+	# Use a regular expression to ignore files beginning with a period or not ending with .pm
+	next if ($file =~ m/^\./);
+	next if ($file !~ m/\.pm$/);
+	$file =~ s/.pm//g;
+	load $file;
+}
+closedir(DIR);
 
+my $notifications = '';
+my @left = ();
+my @middle = ();
+my @right = ();
+my $db_error = '';
+my $driver   = "SQLite";
+my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/dashboard.db";
+my $dsn = "DBI:$driver:dbname=$database";
+my $userid = "";
+my $password = "";
+my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
+   or die $DBI::errstr;
+
+my $stmt = qq(SELECT ID, Subject, Description, URL, Icon, Read FROM Notifications;);
+my $stmt2 = qq(SELECT WidgetName, SortColumn FROM Widgets ORDER BY SortColumn, SortOrder;);
+my $sth = $dbh->prepare( $stmt );
+my $sth2 = $dbh->prepare( $stmt2 );
+my $rv = $sth->execute() or die $DBI::errstr;
+my $rv2 = $sth2->execute() or die $DBI::errstr;
+
+if($rv < 0) {
+   $db_error = $DBI::errstr;
+}
+
+while(my @row = $sth->fetchrow_array()) {
+	my $icon = '';
+	if (! defined $row[4]) { $icon = 'fa fas fa-bell'; }
+	else { $icon = $row[4]; }
+	my $read = '';
+	my $mark_as_read = " <a href='dashboard.cgi' class='label label-success pull-right' onClick='readNotification($row[0])'>Mark as read</a>";
+	if ($row[5] eq 1) { $read = ' strikethrough'; $mark_as_read = ''; }
+	$notifications = $notifications . "<li id='$row[0]' class='item$read'><div class='product-img'><i class='fa-big $icon'></i></div><div class='product-info'><span class='product-title'>$row[1]$mark_as_read</span><span class='product-description'>$row[2]</span></div></li>";
+}
+while(my @row = $sth2->fetchrow_array()) {
+	
+	if ($row[1] eq 'left') { push (@left, $row[0]); }
+	elsif ($row[1] eq 'middle') { push (@middle, $row[0]); }
+	elsif ($row[1] eq 'right') { push (@right, $row[0]); }
+}
+$dbh->disconnect();
+   
 require '/var/ipfire/general-functions.pl';
 require "${General::swroot}/lang.pl";
 require "${General::swroot}/header.pl";
 
-my %netsettings=();
-my %proxysettings=();
-my %confighash=();
-my %vpnsettings=();
-my %wlanapsettings=();
+my $settings = "/srv/web/ipfire/html/themes/dashboard/include/settings";
+my $errormessage = '';
 
-&General::readhash("${General::swroot}/ethernet/settings", \%netsettings);
-&General::readhash("${General::swroot}/proxy/advanced/settings", \%proxysettings);
-&General::readhash("${General::swroot}/ovpn/settings", \%confighash);
-&General::readhash("${General::swroot}/vpn/settings", \%vpnsettings);
-&General::readhash("/var/ipfire/wlanap/settings", \%wlanapsettings);
+&General::readhash("/srv/web/ipfire/html/themes/dashboard/include/settings", \%dashboardsettings);
 
-my $wlan_card_status = '';
-my $wlan_ap_status = '';
-my $cmd_out = `/usr/sbin/iwconfig $wlanapsettings{'INTERFACE'} 2>/dev/null`;
+# ACTIONS
+if ($cgiparams{'ACTION'} eq "$Lang::tr{'save'}")
+{
+  # Save button in config panel
 
-if ( $cmd_out eq '' ){
-	$wlan_card_status = '';
-}else{
-	$cmd_out = `/sbin/ifconfig | /bin/grep $wlanapsettings{'INTERFACE'}`;
-	if ( $cmd_out eq '' ){
-		$wlan_card_status = 'down';
-	}else{
-		$wlan_card_status = 'up';
-		$cmd_out = `/usr/sbin/iwconfig $wlanapsettings{'INTERFACE'} | /bin/grep "Mode:Master"`;
-		if ( $cmd_out ne '' ){
-			$wlan_ap_status = 'up';
-		}
-	}
+  my %new_settings = ();
+  $new_settings{'CPUINFO'} = $cgiparams{'CPUINFO'};
+  $new_settings{'DNSINFO'} = $cgiparams{'DNSINFO'};
+  $new_settings{'NETWORKINFO'} = $cgiparams{'NETWORKINFO'};
+  $new_settings{'WIRELESSINFO'} = $cgiparams{'WIRELESSINFO'};
+
+  General::writehash($settings, \%new_settings);
+
+  if(!$errormessage)
+  {
+      # Clear hashes
+  }
+  else
+  {
+    $cgiparams{'update'}='on';
+  }
+  %settings = %new_settings;
 }
-my $wifi_switch = 'off';
-if($wlan_ap_status eq 'up') { $wifi_switch = 'on' }
 
-our %entries = ();
-my ($ip, $endtime, $ether, $hostname, @record, $record);
-open(LEASES,"/var/state/dhcp/dhcpd.leases") or die "Can't open dhcpd.leases";
-while (my $line = <LEASES>) {
-	next if( $line =~ /^\s*#/ );
-	chomp($line);
-	my @temp = split (' ', $line);
+&showdash;
 
-	if ($line =~ /^\s*lease/) {
-		$ip = $temp[1];
-		# All fields are not necessarily read. Clear everything
-		$endtime = 0;
-		$ether = "";
-		$hostname = "";
-	} elsif ($line =~ /^\s*ends never;/) {
-		$endtime = 'never';
-	} elsif ($line =~ /^\s*ends/) {
-		$line =~ /(\d+)\/(\d+)\/(\d+) (\d+):(\d+):(\d+)/;
-		$endtime = timegm($6, $5, $4, $3, $2 - 1, $1 - 1900);
-	} elsif ($line =~ /^\s*hardware ethernet/) {
-		$ether = $temp[2];
-		$ether =~ s/;//g;
-	} elsif ($line =~ /^\s*client-hostname/) {
-		shift (@temp);
-		$hostname = join (' ',@temp);
-		$hostname =~ s/;//g;
-		$hostname =~ s/\"//g;
-	} elsif ($line eq "}") {
-		
-		my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $dst);
-		($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $dst) = localtime ($endtime);
-		my $enddate = sprintf ("%02d/%02d/%d %02d:%02d:%02d",$mday,$mon+1,$year+1900,$hour,$min,$sec);
-	
-		if ($endtime eq 'never' || $endtime > time()) {
-			if ( &General::IpInSubnet ( $ip,
-					$netsettings{"BLUE_NETADDRESS"},
-					$netsettings{"BLUE_NETMASK"} ) ) 
-			{
-				@record = ('IPADDR',$ip,'ENDTIME',$endtime,'ETHER',$ether,'HOSTNAME',$hostname,'NETWORK','BLUE');
-				$record = {};
-				%{$record} = @record;
-				$entries{$record->{'IPADDR'}} = $record;
-			}
-			else
-			{		
-				@record = ('IPADDR',$ip,'ENDTIME',$endtime,'ETHER',$ether,'HOSTNAME',$hostname,'NETWORK','GREEN');
-				$record = {};
-				%{$record} = @record;
-				$entries{$record->{'IPADDR'}} = $record;
-			}
-		}		
-	}
-}
-close(LEASES);
-
-my $green_leases = 0;
-my $blue_leases = 0;
-foreach my $key (%entries) {
-	if($entries{$key}->{NETWORK} eq 'BLUE') { ++$blue_leases; }
-	elsif ($entries{$key}->{NETWORK} eq 'GREEN') { ++$green_leases; }
-}
+sub showdash
+{
 
 &Header::showhttpheaders();
 &Header::openpage('Dashboard', 1, '');
-
-print <<EOF
-<!-- green: $green_leases, blue: $blue_leases -->
-EOF
-;
 
 print <<EOF
 <script type="text/javascript" src="/themes/dashboard/include/js/jquery.sparkline.min.js"></script>
@@ -170,16 +158,30 @@ print <<EOF
 				var \$this = \$(this);
 				\$this.sparkline('html', \$this.data());
 			});	
-		});
+			
+			// Make the dashboard widgets sortable Using jquery UI
+			\$('.connectedSortable').sortable({
+				placeholder         : 'sort-highlight',
+				connectWith         : '.connectedSortable',
+				handle              : '.box-header, .nav-tabs',
+				forcePlaceholderSize: true,
+				zIndex              : 999999,
+				update				: function () {
+					var data = {
+						left: \$("#left-column").sortable('serialize'),
+						middle: \$("#middle-column").sortable('serialize'),
+						right: \$("#right-column").sortable('serialize')
+					};
+					var url = '/cgi-bin/notifications.cgi?sort,c1,' + data.left.toString().replace('&', '|') + ',c2,' + data.middle.toString().replace('&', '|') + ',c3,' + data.right.toString().replace('&', '|');
+					//alert('Sorted data: ' + url);
+					\$.get(url, function(data) {});
+				}
+			});
+			\$('.connectedSortableSortable .box-header, .connectedSortable .nav-tabs-custom').css('cursor', 'move');			
+		});		
 	</script>
 EOF
 ;
-
-# Framework::Row
-&Header::openbigbox('100%', 'left');
-
-# Framework::Box
-#&Header::openbox('100%', 'center', $Lang::tr{'Network'});
 
 print <<EOF
 <div class="row">
@@ -235,197 +237,43 @@ print <<EOF
 		</div>
 	</div>
 </div>
+<div class='row' id='sortable-content'>
 EOF
 ;
 
-# Framework::Box
-&Header::openbox('100%', 'center', 'Firewall Statistics', 4, 'success', 'fas fa-server');
-print <<EOF
-			<div class="row">
-				<div class="col-md-12">
-					<div class="sparkline" data-type="bar" data-width="97%" data-height="200px" data-bar-Width="14" data-bar-Spacing="7" data-bar-Color="#f39c12">
-						6,4,8, 9, 10, 5, 13, 18, 21, 7, 9
-					</div>
-					<!-- /box-content -->
-				</div>
-			</div>
-			<!-- /.row -->
-EOF
-;
-&Header::closebox();
+# Framework::Column
+&Header::openleftcolumn(3);
 
-&Header::openbox('100%', 'center', 'Network', 4, 'danger', 'fas fa-cloud');
-
-my $ipaddr;
-my $gateway;
-my $dns_servers;
-my $sub=&General::iporsubtocidr($netsettings{'GREEN_NETMASK'});
-my $dhcp_state = 'OFF';
-my $proxy_state = 'OFF';
-my $ipsecip = '0.0.0.0';
-my $ipsec_state = '<span class="red">offline</span>';
-my $openvpnip = '0.0.0.0';
-my $openvpn_state = '<span class="red">offline</span>';
-
-if (open(IPADDR,"${General::swroot}/red/local-ipaddress")) {
-	$ipaddr = <IPADDR>;
-	close IPADDR;
-	chomp ($ipaddr);
+foreach (@left) { 
+    print "$_"->show();
 }
 
-if ( -e "${General::swroot}/red/remote-ipaddress" ) {
-open (TMP, "<${General::swroot}/red/remote-ipaddress");
-	$gateway = <TMP>;
-	chomp($gateway);
-	close TMP;
+&Header::closeleftcolumn();
+
+# Framework::Column
+&Header::openmiddlecolumn(3);
+
+foreach (@middle) { 
+    print "$_"->show();
 }
 
-if ( -e "${General::swroot}/red/dns" ) {
-	open (TMP, "<${General::swroot}/red/dns");
-	$dns_servers = <TMP>;
-	chomp($dns_servers);
-	close TMP;
+&Header::closemiddlecolumn();
+
+# Framework::Column
+&Header::openrightcolumn(6);
+
+foreach (@right) { 
+    print "$_"->show();
 }
 
-if ( $netsettings{'GREEN_TYPE'} ne "DHCP" ) { $dhcp_state = 'ON'; }
-if ( $proxysettings{'ENABLE'} eq 'on' ) { $proxy_state = 'ON'; }
-
-if ( $vpnsettings{'ENABLED'} eq 'on' || $vpnsettings{'ENABLED_BLUE'} eq 'on' ) {
-	$ipsecip = $vpnsettings{'VPN_IP'};
-	$ipsec_state = '<span class="light-green">online</span>';
-}
-
-if (($confighash{'ENABLED'} eq "on") ||
-    ($confighash{'ENABLED_BLUE'} eq "on") ||
-    ($confighash{'ENABLED_ORANGE'} eq "on")) {
-	my ($ovpnip,$subovnp) = split("/",$confighash{'DOVPN_SUBNET'});
-	$subovnp = &General::iporsubtocidr($subovnp);
-	$openvpnip = "$ovpnip/$subovnp";
-	$openvpn_state = '<span class="light-green">online</span>';
-}
+&Header::closerightcolumn();
 
 print <<EOF
-              <div class="row">
-                <div class="col-md-12">
-                  <table class="table borderless anthracite">
-					<tr>
-						<td class="red">Internet</td>
-						<td>$ipaddr</td>
-					</tr>
-					<tr>
-						<td>Gateway</td>
-						<td>$gateway</td>
-					</tr>
-					<tr>
-						<td>DNS Servers</td>
-						<td>$dns_servers</td>
-					</tr>
-					<tr>
-						<td>Connected</td>
-						<td><span class='up'></span></td>
-					</tr>
-					<tr>
-						<td colspan="2"><hr/></td>
-					</tr>
-					<tr>
-						<td class="light-green">LAN</td>
-						<td>$netsettings{'GREEN_ADDRESS'}/$sub</td>
-					</tr>
-					<tr>
-						<td>DHCP</td>
-						<td>$dhcp_state</td>
-					</tr>
-					<tr>
-						<td>Proxy</td>
-						<td>$proxy_state</td>
-					</tr>
-					<tr>
-						<td>Connected Devices</td>
-						<td>$green_leases</td>
-					</tr>
-					<tr>
-						<td colspan="2"><hr/></td>
-					</tr>
-					<tr>
-						<td class="teal">IPSec</td>
-						<td>$ipsecip ($ipsec_state)</td>
-					</tr>
-					<tr>
-						<td class="teal">OpenVPN</td>
-						<td>$openvpnip ($openvpn_state)</td>
-					</tr>
-				  </table>
-                </div>
-                <!-- /.col -->
-              </div>
-              <!-- /.row -->
-EOF
-;
-&Header::closebox();
-
-# Framework::Box
-&Header::openbox('100%', 'center', 'Wireless', 4, 'info', 'fas fa-wifi', '<div class="box-tools pull-right"><input type="checkbox" id="toggle-wifi" name="toggle-wifi" value="1" class="lcs_check" autocomplete="off" /></div>');
-
-#$wlanapsettings{'DRIVER'}
-my $ssid_broadcast = '';
-my $frequency = '2.4 GHz';
-
-if($wlanapsettings{'HIDESSID'} eq 'on') { $ssid_broadcast = ' (hidden)' };
-if($wlanapsettings{'HW_MODE'} eq 'an' || $wlanapsettings{'HW_MODE'} eq 'ac') { $frequency = 'Dual band' }
-
-print <<EOF	
-              <div class="row">
-                <div class="col-md-12">
-                  <table class="table borderless anthracite">
-					<tr>
-						<td>SSID</td>
-						<td>$wlanapsettings{'SSID'}$ssid_broadcast</td>
-					</tr>
-					<tr>
-						<td>WLAN Standard</td>
-						<td>802.11$wlanapsettings{'HW_MODE'}</td>
-					</tr>
-					<tr>
-						<td>Frequency</td>
-						<td>2.4 GHz</td>
-					</tr>
-					<tr>
-						<td>Encryption</td>
-						<td>$wlanapsettings{'ENC'}</td>
-					</tr>
-					<tr>
-						<td>Connected Devices</td>
-						<td>$blue_leases</td>
-					</tr>
-					<tr>
-						<td colspan="2"><hr/></td>
-					</tr>
-					<tr>
-						<td>Guest Access</td>
-						<td>
-							<input type="checkbox" id="toggle-guest-wifi" name="toggle-guest-wifi" value="1" class="lcs_check" autocomplete="off" />
-						</td>
-					</tr>
-					<tr>
-						<td>SSID</td>
-						<td>---</td>
-					</tr>
-					<tr>
-						<td>Encryption</td>
-						<td>WPA2</td>
-					</tr>
-					<tr>
-						<td>Connected Devices</td>
-						<td>0</td>
-					</tr>
-				  </table>
-                </div>
-                <!-- /.col -->
-              </div>
-              <!-- /.row -->
+</div>
 EOF
 ;
 
-&Header::closebox();
-&Header::closebigbox();
 &Header::closepage();
+}
+
+0;

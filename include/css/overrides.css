@@ -29,9 +29,17 @@ body a, body a:hover, body a:focus {
 	color: #8dd4cd;
 }
 
+.strikethrough {
+	text-decoration: line-through;
+}
+
 /* Fix for bootstrap */
 table thead tr th {
 	border: 0px !important;
+}
+
+.graph {
+	min-height: 300px !important;
 }
 
 .mobile {
@@ -80,6 +88,7 @@ table thead tr th {
     margin-bottom: 40px;
     margin-top: -65px;
 }
+
 .dashboard-dial .dial-label label {
     display: block;
 }
@@ -91,6 +100,10 @@ table thead tr th {
 
 .progress-cpu, .progress-memory, .progress-disk {
 	font-weight: bold;
+}
+
+.fa-big {
+	font-size: 40px;
 }
 
 .unbutton {
@@ -108,4 +121,8 @@ span.download-icon:after {
   display: inline-block;
   margin: 1em;
   /* demo only */
+}
+
+.ui-sortable-handle {
+	cursor: move;
 }

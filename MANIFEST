@@ -3,13 +3,16 @@ include/css/AdminLTE.min.css /srv/web/ipfire/html/themes/dashboard root.root 064
 include/css/bootstrap.min.css /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/css/font-awesome.all.min.css /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/css/ionicons.min.css /srv/web/ipfire/html/themes/dashboard root.root 0644
+include/css/jquery-ui.min.css /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/css/lc_switch.css /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/css/overrides.css /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/css/skin-red.min.css /srv/web/ipfire/html/themes/dashboard root.root 0644
+include/database/dashboard.db /srv/web/ipfire/html/themes/dashboard nobody.nobody 0644
 include/js/adminlte.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/bootstrap.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.knob.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
+include/js/jquery-ui.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/jquery.sparkline.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/lc_switch.min.js /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/js/overrideClasses.js /srv/web/ipfire/html/themes/dashboard root.root 0644
@@ -36,5 +39,7 @@ include/webfonts/ionicons.ttf /srv/web/ipfire/html/themes/dashboard root.root 06
 include/webfonts/ionicons.woff /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/colors.txt /srv/web/ipfire/html/themes/dashboard root.root 0644
 include/functions.pl /srv/web/ipfire/html/themes/dashboard root.root 0644
+include/settings /srv/web/ipfire/html/themes/dashboard root.root 0644
 dashboard.cgi /srv/web/ipfire/cgi-bin root.root 0755
+notifications.cgi /srv/web/ipfire/cgi-bin root.root 0755
 sysinfo.cgi /srv/web/ipfire/cgi-bin root.root 0755

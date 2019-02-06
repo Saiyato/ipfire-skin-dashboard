@@ -44,7 +44,7 @@ my $load_c = $6;
 # CPU Info
 
 my $cpu_model = ();
-my $cpu_model = qx(/usr/bin/lscpu | grep Model | cut -d ':' -f 2);
+my $cpu_model = qx(/usr/bin/lscpu | grep "Model name" | cut -d ':' -f 2);
 $cpu_model =~ s/^\s+|\s+$//g;
 
 my $cpu_usage = ();

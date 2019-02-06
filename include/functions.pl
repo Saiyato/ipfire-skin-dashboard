@@ -31,6 +31,37 @@
 # IPFire default theme.                                                       #
 ###############################################################################
 
+use DBI;
+
+my $notifications = '';
+my $notification_count = 0;
+my $notification_label = '';
+my $db_error = '';
+my $driver   = "SQLite";
+my $database = "/srv/web/ipfire/html/themes/dashboard/include/database/dashboard.db";
+my $dsn = "DBI:$driver:dbname=$database";
+my $userid = "";
+my $password = "";
+my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
+   or die $DBI::errstr;
+
+my $stmt = qq(SELECT ID, Subject, URL, Icon FROM Notifications WHERE Read <> 1;);
+my $sth = $dbh->prepare( $stmt );
+my $rv = $sth->execute() or die $DBI::errstr;
+
+if($rv < 0) {
+   $db_error = $DBI::errstr;
+}
+
+while(my @row = $sth->fetchrow_array()) 
+{
+	$notifications = $notifications . "<li onClick='readNotification($row[0])'><a href='$row[2]'><i class='$row[3] text-aqua'></i> $row[1]</a></li>";
+	++$notification_count;
+}
+$dbh->disconnect();
+
+if ($notification_count gt 0) { $notification_label = '<span class="label label-warning">'.$notification_count.'</span>'; }
+
 require "${General::swroot}/lang.pl";
 
 ###############################################################################
@@ -132,6 +163,7 @@ sub openpage {
 	push(@stylesheets, "skin-red.min.css");
 	push(@stylesheets, "font-awesome.all.min.css");
 	push(@stylesheets, "ionicons.min.css");
+	push(@stylesheets, "jquery-ui.min.css");
 	push(@stylesheets, "lc_switch.css");
 	push(@stylesheets, "overrides.css");
 
@@ -146,6 +178,7 @@ print <<END;
 	<link rel="shortcut icon" href="/favicon.ico" />
 	
 	<script type="text/javascript" src="/themes/dashboard/include/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/themes/dashboard/include/js/jquery-ui.min.js"></script>
 
 	<script type="text/javascript" src="/themes/dashboard/include/js/refreshSysInfo.js"></script>
 	<script type="text/javascript" src="/themes/dashboard/include/js/overrideClasses.js"></script>	
@@ -153,6 +186,15 @@ print <<END;
 	<script type="text/javascript">
 		function swapVisibility(id) {
 			\$('#' + id).toggle();
+		}
+		function readNotification(ID) {
+			var updateUrl = 'notifications.cgi?update,' + ID;
+			\$.ajax({
+				url: updateUrl
+			});
+			var x = document.getElementById(ID);
+			\$(x).addClass("strikethrough");
+			\$(x).remove("label");
 		}
 	</script>
 END
@@ -223,19 +265,15 @@ print <<END
 					<!-- Menu toggle button -->
 					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
 						<i class="far fa-bell"></i>
-						<span class="label label-warning">10</span>
+						$notification_label
 					</a>
 					<ul class="dropdown-menu">
-						<li class="header">You have 10 notifications</li>
+						<li><a href="#"><i class="fa fas fa-cogs"></i>Dashboard settings</a></li>
+						<li class="header">You have $notification_count notification(s)</li>
 						<li>
 							<!-- Inner Menu: contains the notifications -->
 							<ul class="menu">
-								<li>
-									<!-- start notification -->
-									<a href="#">
-										<i class="fa fa-users text-aqua"></i> 5 new members joined today
-									</a>
-								</li><!-- end notification -->
+$notifications						
 							</ul>
 						</li>
 						<li class="footer"><a href="#">View all</a></li>
@@ -273,10 +311,10 @@ print <<END
 			<h1 class="page-header">$title</h1>
 		</section>
 		<section class="content">
-			<div class="row">
 			<!-- content -->
 END
 ;
+
 }
 
 ###############################################################################
@@ -302,7 +340,6 @@ sub closepage () {
 	close(FILE);
 
 print <<END
-		</div> <!-- row -->
 	</section> <!-- page-wrapper -->
 
 	</div> <!-- content-wrapper --> 
@@ -330,12 +367,73 @@ END
 #
 # print big box opening html layout
 sub openbigbox {
+	print "<div class='row'>";
 }
 
 ###############################################################################
 #
 # print big box closing html layout
 sub closebigbox {
+	print "</div>";
+}
+
+###############################################################################
+#
+# print left (smaller) column for ui-sortable
+sub openleftcolumn {
+	$width = $_[0];
+	print "<section id='left-column' class='col-lg-$width connectedSortable ui-sortable'>";
+}
+
+###############################################################################
+#
+# close left column
+sub closeleftcolumn {
+	print "</section>";
+}
+
+###############################################################################
+#
+# print middle (smaller) column for ui-sortable
+sub openmiddlecolumn {
+	$width = $_[0];
+	print "<section id='middle-column' class='col-lg-$width connectedSortable ui-sortable'>";
+}
+
+###############################################################################
+#
+# close middle column
+sub closemiddlecolumn {
+	print "</section>";
+}
+
+###############################################################################
+#
+# print right (bigger) column for ui-sortable
+sub openrightcolumn {
+	$width = $_[0];
+	print "<section id='right-column' class='col-lg-$width connectedSortable ui-sortable'>";
+}
+
+###############################################################################
+#
+# close right column
+sub closerightcolumn {
+	print "</section>";
+}
+
+###############################################################################
+#
+# open row
+sub openrow {
+	print "<div class='row'>";
+}
+
+###############################################################################
+#
+# close row
+sub closerow {
+	print "</div>";
 }
 
 ###############################################################################
@@ -348,36 +446,21 @@ sub openbox {
 	$width = $_[0];
 	$align = $_[1];
 	$caption = $_[2];
-	$size = $_[3];
-	$type = $_[4];
-	$icon = $_[5];
-	$tools = $_[6];
-
-	if($size)
-	{
-		print "<div class='col-md-$size'>\n"
-	}
-	else
-	{
-		if($align eq 'center') {
-			print "<div class='col-md-12'>\n"
-		}
-		else {
-			print "<div class='col-md-12'>\n";
-		}
-	}
-
-	if($type)
-	{
-		print "<div class='box box-$type'>";
-	}
-	else
-	{
-		print "<div class='box'>";
-	}
+	$type = $_[3];
+	$icon = $_[4];
+	$tools = $_[5];
+	$id = $_[6];
+	$test = $_[7];
+	
+	#$align -> implement still;	
+	
+	if(not defined($size) && $size ne '') { $size = '6'; }
+	if(not defined($type) && $type ne '') { $type = 'solid'; }
+	
+	print "<div class='box box-$type' id='wid_$id'>\n";
 	
 	if ($caption) {
-		print "<div class='box-header with-border'>";
+		print "<div class='box-header with-border ui-sortable-handle'>";
 		if ($icon) { print "<i class='$icon'></i>"; }		
 		print "<h3 class='box-title'>$caption</h3>";
 		if($tools) { print $tools; }
@@ -391,7 +474,7 @@ sub openbox {
 #
 # print box closing html layout
 sub closebox {
-	print "</div></div></div>";
+	print "</div></div>";
 }
 
 1;

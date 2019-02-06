@@ -37,6 +37,8 @@ else
 fi
 done < "MANIFEST"
 
+pakfire install perl-DBD-SQLite -y
+
 # Tidy up
 
 rm MANIFEST
