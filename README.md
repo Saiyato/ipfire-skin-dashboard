@@ -5,7 +5,7 @@ A simple and bootstrap powered skin in the form of a dashboard, also adds a dash
 
 You can easily re-arrange the widgets on the dashboard to your liking
 
-![Alt text](/printscreens/sorting_items.png?raw=true "Sorting items")
+![Alt text](/printscreens/sorting_item.png?raw=true "Sorting widgets")
 
 I've tried to fit the 'legacy' pages by override some classes, but it needs more work if you want to unify the skin
 
