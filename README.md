@@ -20,6 +20,7 @@ Work list:
 * [x] Make dashboard widgets sortable
 * [x] Create notifications widget and cgi
 * [ ] Tidy up notifications cgi
+* [ ] Collectd graphs aren't showing properly, needs fixing
 * [ ] Rewrite 'legacy' pages to fit the skin, create scripts to backup the 'legacy' versions
 * [ ] Create a function to restore the 'legacy' cgi pages (for other skins)
 * [ ] Create an easy way to add new widgets
