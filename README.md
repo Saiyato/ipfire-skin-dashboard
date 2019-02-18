@@ -15,7 +15,7 @@ Work list:
 
 * [x] Release initial version
 * [x] Tidy up code
-* [ ] Map the menu structure and add navigational info (expand menu when for appropriate section and highlight current page)
+* [ ] Map the menu structure and add navigational info (expand menu for appropriate section and highlight current page)
 * [ ] Add translations
 * [x] Make dashboard widgets extensible
 * [x] Make dashboard widgets sortable
