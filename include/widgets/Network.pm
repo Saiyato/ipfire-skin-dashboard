@@ -141,7 +141,7 @@ sub show
 	return "
 		<div class='box box-danger' id='wid_$widget_id'>
 			<div class='box-header with-border ui-sortable-handle'>
-				<i class='fas fa-cloud'></i>
+				<i class='fas fa-cloud large'></i>
 				<h3 class='box-title'>Network</h3>
 			</div>
 			<div class='box-body'>

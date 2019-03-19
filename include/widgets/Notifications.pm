@@ -39,8 +39,12 @@ sub show
 	return "
 		<div class='box box-success' id='wid_$widget_id'>
 			<div class='box-header with-border ui-sortable-handle'>
-				<i class='far fa-envelope'></i>
+				<i class='far fa-envelope large'></i>
 				<h3 class='box-title'>Notifications</h3>
+				<div class='box-tools pull-right'>
+                <button type='button' class='btn btn-box-tool' data-widget='collapse'><i class='fa fa-minus'></i>
+                </button>
+              </div>
 			</div>
 			<div class='box-body'>
 				<div class='col-md-12'>

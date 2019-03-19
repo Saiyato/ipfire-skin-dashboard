@@ -114,7 +114,7 @@ sub show
 	return "
 		<div class='box box-info' id='wid_$widget_id'>
 			<div class='box-header with-border ui-sortable-handle'>
-				<i class='fas fa-wifi'></i>
+				<i class='fas fa-wifi large'></i>
 				<h3 class='box-title'>Wireless</h3>
 				<div class='box-tools pull-right'>
 					<input type='checkbox' id='toggle-wifi' name='toggle-wifi' value='1' class='lcs_check' autocomplete='off'>

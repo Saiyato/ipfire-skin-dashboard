@@ -31,6 +31,7 @@ function formatTables() {
 		altDownload	: '[alt="download"]',
 		altRestore	: '[alt="Restore"]',
 		input       : 'input',
+		img			: 'img',
 		imageType   : '[type="image"]',
 		tbl		    : '.tbl',
 		treeviewMenu: '.treeview-menu',
@@ -55,6 +56,7 @@ function formatTables() {
 	$(Selector.input + Selector.imageType + Selector.altDelete, this.element).addClass("hidden");
 	$(Selector.input + Selector.imageType + Selector.altBackup, this.element).addClass("hidden");
 	$(Selector.input + Selector.imageType + Selector.altRestore, this.element).addClass("hidden");
+	
 	$("<button type='submit' class='unbutton' title='Download'><i class='ion ion-archive' alt='Download'></i></button>").insertBefore(Selector.input + Selector.imageType + Selector.altDownload, this.element);
 	$("<button type='submit' class='unbutton' title='Delete'><i class='far fa-trash-alt' alt='Delete'></i></button>").insertBefore(Selector.input + Selector.imageType + Selector.altDelete, this.element);
 	$("<button type='submit' class='unbutton' title='Backup'><i class='fas fa-plus' alt='Backup'></i></button>").insertBefore(Selector.input + Selector.imageType + Selector.altBackup, this.element);

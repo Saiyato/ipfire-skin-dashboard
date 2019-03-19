@@ -40,6 +40,9 @@ table thead tr th {
 
 .graph {
 	min-height: 300px !important;
+	width: 910px;
+	display: block;
+	margin: auto;
 }
 
 .mobile {
@@ -61,7 +64,7 @@ table thead tr th {
 	float: left;
 }
 
-.branch i, .treeview i, .box-header i {
+.branch i, .treeview i, .box-header i.large{
 	font-size: 20px !important;
 	margin-right: 20px !important;
 }

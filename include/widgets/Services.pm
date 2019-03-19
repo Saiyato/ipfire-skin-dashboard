@@ -53,7 +53,7 @@ sub show
 	my $retval = "
 		<div class='box box-primary' id='wid_$widget_id'>
 			<div class='box-header with-border ui-sortable-handle'>
-				<i class='fab fa-servicestack'></i>
+				<i class='fab fa-servicestack large'></i>
 				<h3 class='box-title'>Services</h3>
 			</div>
 			<div class='box-body'>
