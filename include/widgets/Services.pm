@@ -24,6 +24,7 @@ my %servicenames =(
 	$Lang::tr{'secure shell server'} => 'sshd',
 	$Lang::tr{'vpn'} => 'charon',
 	$Lang::tr{'web proxy'} => 'squid',
+	$Lang::tr{'intrusion detection system'} => 'suricata',
 	'OpenVPN' => 'openvpn'
 );
 
@@ -38,11 +39,13 @@ my %link =(
 	$Lang::tr{'secure shell server'} => "<a href=\'remote.cgi\'>$Lang::tr{'secure shell server'}</a>",
 	$Lang::tr{'vpn'} => "<a href=\'vpnmain.cgi\'>$Lang::tr{'vpn'}</a>",
 	$Lang::tr{'web proxy'} => "<a href=\'proxy.cgi\'>$Lang::tr{'web proxy'}</a>",
-	'OpenVPN' => "<a href=\'ovpnmain.cgi\'>OpenVPN</a>",
-	"$Lang::tr{'intrusion detection system'} (GREEN)" => "<a href=\'ids.cgi\'>$Lang::tr{'intrusion detection system'} (GREEN)</a>",
-	"$Lang::tr{'intrusion detection system'} (RED)" => "<a href=\'ids.cgi\'>$Lang::tr{'intrusion detection system'} (RED)</a>",
-	"$Lang::tr{'intrusion detection system'} (ORANGE)" => "<a href=\'ids.cgi\'>$Lang::tr{'intrusion detection system'} (ORANGE)</a>",
-	"$Lang::tr{'intrusion detection system'} (BLUE)" => "<a href=\'ids.cgi\'>$Lang::tr{'intrusion detection system'} (BLUE)</a>"
+	"$Lang::tr{'intrusion detection system'}" => "<a href=\'ids.cgi\'>$Lang::tr{'intrusion detection system'}</a>",
+	'OpenVPN' => "<a href=\'ovpnmain.cgi\'>OpenVPN</a>"
+);
+
+# Hash to overwrite the process name of a process if it differs fromt the launch command.
+my %overwrite_exename_hash = (
+	"suricata" => "Suricata-Main"
 );
 
 &General::readhash("${General::swroot}/ethernet/settings", \%netsettings);
@@ -77,6 +80,10 @@ sub show
 		$retval = $retval.$status."</tr>";
 	}
 	
+	$retval = $retval . "
+							<tr><td><i><b>Add-ons</b></i></td></tr>
+	";
+	
 	# Generate list of installed addon pak's
 	my @pak = `find /opt/pakfire/db/installed/meta-* 2>/dev/null | cut -d"-" -f2`;
 	foreach (@pak){
@@ -107,7 +114,7 @@ sub show
 		}
 	}
 	
-	$retval = $retval . "		
+		$retval = $retval . "		
 						</tbody>
 					</table>
 				</div>
@@ -126,7 +133,20 @@ sub isrunning{
 	my $memory;
 
 	$cmd =~ /(^[a-z]+)/;
-	$exename = $1;
+	
+	# Check if the exename needs to be overwritten.
+	# This happens if the expected process name string
+	# differs from the real one. This may happened if
+	# a service uses multiple processes or threads.
+	if (exists($overwrite_exename_hash{$1})) {
+		# Grab the string which will be reported by
+		# the process from the corresponding hash.
+		$exename = $overwrite_exename_hash{$1};
+	} else {
+		# Directly expect the launched command as
+		# process name.
+		$exename = $1;
+	}
 
 	if (open(FILE, "/var/run/${cmd}.pid")){
 		$pid = <FILE>; chomp $pid;
